@@ -51,6 +51,7 @@ jobs:
             --snowflake-account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
             --snowflake-user ${{ secrets.SNOWFLAKE_USER }} \
             --snowflake-role ACCOUNTADMIN \
+            --snowflake-database SCHEMACHANGE_DB \
             --root-folder migrations \
             --create-change-history-table \
             --change-history-table SCHEMACHANGE_DB.PUBLIC.TMDB_HISTORY
