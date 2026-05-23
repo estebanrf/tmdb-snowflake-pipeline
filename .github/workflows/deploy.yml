@@ -1,0 +1,76 @@
+name: Deploy Snowflake Objects
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'migrations/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: pip install schemachange snowflake-connector-python
+
+      - name: Create schemachange history database
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+        run: |
+          python << 'EOF'
+          import snowflake.connector
+          import os
+          conn = snowflake.connector.connect(
+              account=os.environ['SNOWFLAKE_ACCOUNT'],
+              user=os.environ['SNOWFLAKE_USER'],
+              password=os.environ['SNOWFLAKE_PASSWORD'],
+              role='ACCOUNTADMIN'
+          )
+          conn.cursor().execute("CREATE DATABASE IF NOT EXISTS SCHEMACHANGE_DB")
+          conn.cursor().execute("CREATE SCHEMA IF NOT EXISTS SCHEMACHANGE_DB.PUBLIC")
+          conn.close()
+          EOF
+
+      - name: Deploy to Snowflake
+        env:
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_AUTHENTICATOR: snowflake
+        run: |
+          schemachange deploy \
+            --snowflake-account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
+            --snowflake-user ${{ secrets.SNOWFLAKE_USER }} \
+            --snowflake-role ACCOUNTADMIN \
+            --root-folder migrations \
+            --create-change-history-table \
+            --change-history-table SCHEMACHANGE_DB.PUBLIC.TMDB_HISTORY
+
+      - name: Set Dataiku user password
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          DATAIKU_USER_PASSWORD: ${{ secrets.DATAIKU_USER_PASSWORD }}
+        run: |
+          python << 'EOF'
+          import snowflake.connector
+          import os
+          conn = snowflake.connector.connect(
+              account=os.environ['SNOWFLAKE_ACCOUNT'],
+              user=os.environ['SNOWFLAKE_USER'],
+              password=os.environ['SNOWFLAKE_PASSWORD'],
+              role='ACCOUNTADMIN'
+          )
+          conn.cursor().execute(f"ALTER USER DATAIKU_USER SET PASSWORD = '{os.environ['DATAIKU_USER_PASSWORD']}'")
+          conn.close()
+          EOF
