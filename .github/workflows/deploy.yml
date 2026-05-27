@@ -51,27 +51,30 @@ jobs:
             --snowflake-account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
             --snowflake-user ${{ secrets.SNOWFLAKE_USER }} \
             --snowflake-role ACCOUNTADMIN \
+            --snowflake-warehouse TMDB_WH \
             --snowflake-database SCHEMACHANGE_DB \
             --root-folder migrations \
             --create-change-history-table \
             --change-history-table SCHEMACHANGE_DB.PUBLIC.TMDB_HISTORY
 
-      - name: Set Dataiku user password
+      - name: Set Dataiku user RSA public key
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          DATAIKU_USER_PASSWORD: ${{ secrets.DATAIKU_USER_PASSWORD }}
+          DATAIKU_PUBLIC_KEY: ${{ secrets.DATAIKU_PUBLIC_KEY }}
         run: |
           python << 'EOF'
           import snowflake.connector
           import os
+          public_key = os.environ['DATAIKU_PUBLIC_KEY']
+          public_key = ''.join(l for l in public_key.splitlines() if l and not l.startswith('-----'))
           conn = snowflake.connector.connect(
               account=os.environ['SNOWFLAKE_ACCOUNT'],
               user=os.environ['SNOWFLAKE_USER'],
               password=os.environ['SNOWFLAKE_PASSWORD'],
               role='ACCOUNTADMIN'
           )
-          conn.cursor().execute(f"ALTER USER DATAIKU_USER SET PASSWORD = '{os.environ['DATAIKU_USER_PASSWORD']}'")
+          conn.cursor().execute(f"ALTER USER DATAIKU_USER SET RSA_PUBLIC_KEY = '{public_key}'")
           conn.close()
           EOF
