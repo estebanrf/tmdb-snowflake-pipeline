@@ -1,0 +1,2 @@
+schemachange==4.3.3
+snowflake-connector-python==4.5.0
