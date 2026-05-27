@@ -40,10 +40,11 @@ jobs:
                   role='ACCOUNTADMIN'
               )
               cur = conn.cursor()
+              cur.execute("CREATE WAREHOUSE IF NOT EXISTS TMDB_WH WAREHOUSE_SIZE = 'X-SMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE")
               cur.execute("CREATE DATABASE IF NOT EXISTS SCHEMACHANGE_DB")
               cur.execute("CREATE SCHEMA IF NOT EXISTS SCHEMACHANGE_DB.PUBLIC")
               conn.close()
-              print("SCHEMACHANGE_DB initialized successfully")
+              print("SCHEMACHANGE_DB and TMDB_WH initialized successfully")
           except Exception as e:
               print(f"ERROR: Failed to initialize SCHEMACHANGE_DB: {e}", file=sys.stderr)
               sys.exit(1)
