@@ -1,5 +1,6 @@
 -- Cortex Search Service for semantic search over movie plot descriptions
 -- Uncomment to deploy on a paid Snowflake account (EMBED_TEXT_768 not available on trial)
+SELECT 'Cortex Search Service pending - requires paid Snowflake account' AS deployment_note;
 
 -- CREATE OR REPLACE CORTEX SEARCH SERVICE TMDB_DB.ANALYTICS.TMDB_CORTEX_SEARCH
 --     ON overview
