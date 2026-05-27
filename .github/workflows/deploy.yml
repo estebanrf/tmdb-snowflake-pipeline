@@ -53,7 +53,6 @@ jobs:
       - name: Deploy to Snowflake
         env:
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SNOWFLAKE_AUTHENTICATOR: snowflake
         run: |
           schemachange deploy \
             --snowflake-account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
@@ -75,14 +74,20 @@ jobs:
           python << 'EOF'
           import snowflake.connector
           import os
-          public_key = os.environ['DATAIKU_PUBLIC_KEY']
-          public_key = ''.join(l for l in public_key.splitlines() if l and not l.startswith('-----'))
-          conn = snowflake.connector.connect(
-              account=os.environ['SNOWFLAKE_ACCOUNT'],
-              user=os.environ['SNOWFLAKE_USER'],
-              password=os.environ['SNOWFLAKE_PASSWORD'],
-              role='ACCOUNTADMIN'
-          )
-          conn.cursor().execute(f"ALTER USER DATAIKU_USER SET RSA_PUBLIC_KEY = '{public_key}'")
-          conn.close()
+          import sys
+          try:
+              public_key = os.environ['DATAIKU_PUBLIC_KEY']
+              public_key = ''.join(l for l in public_key.splitlines() if l and not l.startswith('-----'))
+              conn = snowflake.connector.connect(
+                  account=os.environ['SNOWFLAKE_ACCOUNT'],
+                  user=os.environ['SNOWFLAKE_USER'],
+                  password=os.environ['SNOWFLAKE_PASSWORD'],
+                  role='ACCOUNTADMIN'
+              )
+              conn.cursor().execute(f"ALTER USER DATAIKU_USER SET RSA_PUBLIC_KEY = '{public_key}'")
+              conn.close()
+              print("RSA public key set successfully for DATAIKU_USER")
+          except Exception as e:
+              print(f"ERROR: Failed to set RSA public key: {e}", file=sys.stderr)
+              sys.exit(1)
           EOF
