@@ -31,15 +31,22 @@ jobs:
           python << 'EOF'
           import snowflake.connector
           import os
-          conn = snowflake.connector.connect(
-              account=os.environ['SNOWFLAKE_ACCOUNT'],
-              user=os.environ['SNOWFLAKE_USER'],
-              password=os.environ['SNOWFLAKE_PASSWORD'],
-              role='ACCOUNTADMIN'
-          )
-          conn.cursor().execute("CREATE DATABASE IF NOT EXISTS SCHEMACHANGE_DB")
-          conn.cursor().execute("CREATE SCHEMA IF NOT EXISTS SCHEMACHANGE_DB.PUBLIC")
-          conn.close()
+          import sys
+          try:
+              conn = snowflake.connector.connect(
+                  account=os.environ['SNOWFLAKE_ACCOUNT'],
+                  user=os.environ['SNOWFLAKE_USER'],
+                  password=os.environ['SNOWFLAKE_PASSWORD'],
+                  role='ACCOUNTADMIN'
+              )
+              cur = conn.cursor()
+              cur.execute("CREATE DATABASE IF NOT EXISTS SCHEMACHANGE_DB")
+              cur.execute("CREATE SCHEMA IF NOT EXISTS SCHEMACHANGE_DB.PUBLIC")
+              conn.close()
+              print("SCHEMACHANGE_DB initialized successfully")
+          except Exception as e:
+              print(f"ERROR: Failed to initialize SCHEMACHANGE_DB: {e}", file=sys.stderr)
+              sys.exit(1)
           EOF
 
       - name: Deploy to Snowflake
