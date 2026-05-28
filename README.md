@@ -16,10 +16,9 @@ Snowflake DDL deployment pipeline for the TMDB movie data project. Manages all S
 | V1.1.0 | Dynamic Tables `DT_MOVIES_ENRICHED` (TRANSFORMED) and `DT_GENRE_ANALYTICS` (ANALYTICS), both at 1h lag |
 | V1.2.0 | Row Access Policy `ADULT_CONTENT_POLICY`, tag `SENSITIVE_FINANCIAL`, masking policy `FINANCIAL_MASK` |
 | V1.3.0 | 7 Data Metric Functions across RAW, TRANSFORMED, and ANALYTICS layers |
-| V1.4.0 | All privilege grants for `DATAIKU_ROLE` and `ACCOUNTADMIN` |
-| V1.5.0 | Stage `SEMANTIC_MODELS_STAGE` with directory table enabled |
-| V1.6.0 | Semantic View `TMDB_SEMANTIC_VIEW` (DDL extracted via `GET_DDL`) |
-| V1.7.0 | Cortex Search Service DDL (commented — requires paid Snowflake account) |
+| V1.4.0 | Stage `SEMANTIC_MODELS_STAGE` with directory table enabled |
+| V1.5.0 | Semantic View `TMDB_SEMANTIC_VIEW` (DDL extracted via `GET_DDL`) |
+| V1.6.0 | Cortex Search Service DDL (commented,requires paid Snowflake account) |
 
 ## Deployment
 
